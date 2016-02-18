@@ -1,0 +1,35 @@
+# OASIS_START
+# DO NOT EDIT (digest: 6cb98223c0cbd716e265043527ec04a6)
+# Ignore VCS directories, you can use the same kind of rule outside
+# OASIS_START/STOP if you want to exclude directories that contains
+# useless stuff for the build process
+true: annot, bin_annot
+<**/.svn>: -traverse
+<**/.svn>: not_hygienic
+".bzr": -traverse
+".bzr": not_hygienic
+".hg": -traverse
+".hg": not_hygienic
+".git": -traverse
+".git": not_hygienic
+"_darcs": -traverse
+"_darcs": not_hygienic
+# Executable webexpect
+<webExpect.{native,byte}>: pkg_batteries
+<webExpect.{native,byte}>: pkg_cohttp
+<webExpect.{native,byte}>: pkg_cohttp.lwt
+<webExpect.{native,byte}>: pkg_fmt
+<webExpect.{native,byte}>: pkg_lwt
+<webExpect.{native,byte}>: pkg_lwt.ppx
+<webExpect.{native,byte}>: pkg_lwt.unix
+<webExpect.{native,byte}>: pkg_pcre
+<*.ml{,i,y}>: pkg_batteries
+<*.ml{,i,y}>: pkg_cohttp
+<*.ml{,i,y}>: pkg_cohttp.lwt
+<*.ml{,i,y}>: pkg_fmt
+<*.ml{,i,y}>: pkg_lwt
+<*.ml{,i,y}>: pkg_lwt.ppx
+<*.ml{,i,y}>: pkg_lwt.unix
+<*.ml{,i,y}>: pkg_pcre
+# OASIS_STOP
+true: use_menhir
