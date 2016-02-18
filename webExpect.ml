@@ -5,7 +5,7 @@ let parse_script file =
   let ast = ExpectParser.prog ExpectLexer.main (Lexing.from_channel chan) in
     close_in chan; ast
 
-exception Mismatch of matchrule * string * string * (string * string) list
+exception Mismatch of matchrule * string * string * instance
 
 let interpret_match_rule rule bindings =
   let open Cohttp.Code in
@@ -28,7 +28,10 @@ let interpret_match_rule rule bindings =
          let sub = Pcre.exec ~rex:result_body_pattern body_text in
          let new_bindings =
            List.map (fun (idx, name) -> (name, Pcre.get_substring sub idx)) result_binding
-         in Lwt.return (new_bindings @ bindings)
+         in Lwt.return
+              (List.fold_left
+                 (fun bindings (name, value) -> StringMap.add name value bindings)
+                 bindings new_bindings)
        with Not_found ->
          raise (Mismatch(rule, "body", body_text, bindings))
 
@@ -50,14 +53,14 @@ let num_failed = ref 0
 
 let run_script file =
   try 
-    ignore (Lwt_main.run (interpret_match_rules (parse_script file) []))
+    ignore (Lwt_main.run (interpret_match_rules (parse_script file) StringMap.empty))
   with Mismatch (rule, what, value, bindings) ->
     incr num_failed;
     Format.eprintf
       "@[<v 2>Test script %s failed: %s was [@<hov 2>%s@] for match rule@ %a@ and bindings
       @[<hov 2>%a@]@."
       file what value (pp_matchrule bindings) rule
-      (Fmt.list (Fmt.pair Fmt.string Fmt.string)) bindings
+      (Fmt.using StringMap.bindings (Fmt.list (Fmt.pair Fmt.string Fmt.string))) bindings
 
 let _ =
   BatEnum.iter run_script (BatPervasives.args ());
