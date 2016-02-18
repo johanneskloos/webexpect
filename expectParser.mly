@@ -18,12 +18,13 @@ rev_rules:
 rule:
     | request_type=httpmethod uri=STRING request_body=body SEMICOLON
     { { request_type; uri = build_uri uri; request_body;
-        result_status = None; result_body_pattern = re_any; result_binding = [] } }
+        result_status = None; result_body_pattern = re_any; result_binding = [];
+        result_body_pattern_string = pattern_any } }
     | request_type=httpmethod uri=STRING request_body=body 
       LBRACE m=result_matches RBRACE
-    { let (result_status, result_body_pattern, result_binding) = m in
+    { let (result_status, result_body_pattern, result_body_pattern_string, result_binding) = m in
         { request_type; uri = build_uri uri; request_body;
-          result_status; result_body_pattern; result_binding} };
+          result_status; result_body_pattern; result_body_pattern_string; result_binding} };
     
 httpmethod:
     | GET { let open Cohttp.Code in `GET }
@@ -38,18 +39,18 @@ body:
     | { None };
 
 result_matches:
-    | STATUS n=NUMBER { (Some (Cohttp.Code.status_of_code n), re_any, []) }
+    | STATUS n=NUMBER { (Some (Cohttp.Code.status_of_code n), re_any, pattern_any, []) }
     | STATUS n=NUMBER SEMICOLON b=body_match
-      { let (bodypat, bindings) = b in
-        (Some (Cohttp.Code.status_of_code n), bodypat, bindings) }
+      { let (bodypat, bodypat', bindings) = b in
+        (Some (Cohttp.Code.status_of_code n), bodypat, bodypat', bindings) }
     | b=body_match
-      { let (bodypat, bindings) = b in
-        (None, bodypat, bindings) };
+      { let (bodypat, bodypat', bindings) = b in
+        (None, bodypat, bodypat', bindings) };
 
 body_match:
-    | MATCH p=PATTERN { (Pcre.regexp p, []) }
+    | MATCH p=PATTERN { (Pcre.regexp p, p, []) }
     | MATCH p=PATTERN SEMICOLON b=separated_list(SEMICOLON, set_expr)
-      { (Pcre.regexp p, b) };
+      { (Pcre.regexp p, p, b) };
 
 set_expr:
     | SET n=STRING EQUALS i=NUMBER { (i, n) };

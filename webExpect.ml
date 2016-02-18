@@ -36,14 +36,14 @@ let interpret_match_rules =
   Lwt_list.fold_right_s interpret_match_rule
 
 let pp_matchrule bindings pp
-      { request_type; uri; request_body; result_status; result_body_pattern;
+      { request_type; uri; request_body; result_status; result_body_pattern_string;
         result_binding } =
-  Format.fprintf pp "@[<hov 2>%s %s@ with@ %a@, expecting %a@ and@ %a@ and binding@ %a@]"
+  Format.fprintf pp "@[<hov 2>%s %s@ with@ %a@, expecting %a@ and@ %s@ and binding@ %a@]"
     (Cohttp.Code.string_of_method request_type)
     (Uri.to_string (uri bindings))
     (Fmt.option Fmt.string) (BatOption.map (fun f -> f bindings) request_body)
     (Fmt.option (fun pp rs -> Fmt.string pp (Cohttp.Code.string_of_status rs))) result_status
-    (fun pp _ -> Fmt.string pp "(some regex)") result_body_pattern
+    result_body_pattern_string
     (Fmt.list (Fmt.pair Fmt.int Fmt.string)) result_binding
 
 let num_failed = ref 0
