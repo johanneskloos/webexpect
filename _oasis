@@ -8,7 +8,7 @@ Plugins:     META (0.4)
 
 Executable webexpect
   Path:       .
-  BuildTools: ocamlbuild
+  BuildTools: ocamlbuild, menhir
   MainIs:     webExpect.ml
   BuildDepends: cohttp, lwt, cohttp.lwt, lwt.unix, lwt.ppx, pcre, fmt, batteries
   CompiledObject: best
