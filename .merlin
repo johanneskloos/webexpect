@@ -1,0 +1,3 @@
+B _build
+PKG cohttp cohttp.lwt lwt lwt.unix lwt.ppx pcre batteries fmt
+FLG -ppx ppx_lwt

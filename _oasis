@@ -1,0 +1,14 @@
+OASISFormat: 0.4
+Name:        WebExpect
+Version:     0.1
+Synopsis:    A simple web API testing tool.
+Authors:     Johannes Kloos <jkloos@mpi-sws.org>
+License:     MIT
+Plugins:     META (0.4)
+
+Executable webexpect
+  Path:       .
+  BuildTools: ocamlbuild
+  MainIs:     webExpect.ml
+  BuildDepends: cohttp, lwt, cohttp.lwt, lwt.unix, lwt.ppx, pcre, fmt, batteries
+  CompiledObject: best
