@@ -1,0 +1,11 @@
+# OASIS_START
+# DO NOT EDIT (digest: 6a350f344e64dc6c8364be3e4082c5a8)
+version = "0.1"
+description = "A simple web API testing tool."
+archive(byte) = "webexpect.cma"
+archive(byte, plugin) = "webexpect.cma"
+archive(native) = "webexpect.cmxa"
+archive(native, plugin) = "webexpect.cmxs"
+exists_if = "webexpect.cma"
+# OASIS_STOP
+

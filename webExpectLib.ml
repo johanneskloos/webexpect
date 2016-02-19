@@ -24,10 +24,6 @@ let string_of_token = let open ExpectParser in function
   | EQUALS -> "="
   | EOF -> ""
   | DELETE -> "DELETE"
-  | WITH -> "with"
-  | LOAD -> "load"
-  | JSON -> "json"
-  | COMMA -> ","
 
 let parse_script file =
   let chan = open_in file in
@@ -48,46 +44,11 @@ let parse_script file =
 
 exception Mismatch of matchrule * string * string * instance
 
-let interpret_matcher rule matcher bindings body_text = match matcher with
-  | MatchPCRE (rex, rex_string, bind_pattern) ->
-      begin try
-        let sub = Pcre.exec ~rex body_text in
-          List.fold_left (fun bindings (index, name) ->
-                            let value = Pcre.get_substring sub index in
-                              StringMap.add name value bindings)
-            bindings bind_pattern
-      with Not_found ->
-        raise (Mismatch(rule, "body pcre match", body_text, bindings))
-      end
-  | MatchJSON expected ->
-      begin try
-        let open Yojson.Basic in
-          Format.eprintf "Exp template %s@." expected;
-        let exp_json = ExpectTypes.build_template (fun s -> s) expected bindings in
-          Format.eprintf "Instantiating exp template gives %s@." exp_json;
-          Format.eprintf "Body %s@." body_text;
-        let got_body = from_string body_text
-        and exp_body = ExpectTypes.build_template from_string expected bindings
-        in if exp_body = got_body then
-          bindings
-        else
-          raise (Mismatch(rule, "body JSON match", body_text, bindings))
-      with _ -> (* parse error *)
-        raise (Mismatch(rule, "body JSON match (parse error) ", body_text, bindings))
-      end
-  | MatchCode mfunc ->
-      begin match mfunc bindings body_text with
-        | Some new_bindings -> new_bindings
-        | None ->
-            raise (Mismatch(rule, "body function match", body_text, bindings))
-      end
-  | MatchTrivial -> bindings
-
 let interpret_match_rule rule bindings =
   let open Cohttp.Code in
   let open Cohttp_lwt_unix.Client in
-  let open Lwt in
-  let { request_type; uri; request_body; result_status; result_body } = rule in
+  let { request_type; uri; request_body; result_status; result_body_pattern;
+        result_binding } = rule in
     Format.printf "Sending %s request to %s@."
       (string_of_method request_type) (Uri.to_string (uri bindings));
   let%lwt (response, body)  =
@@ -104,42 +65,41 @@ let interpret_match_rule rule bindings =
               raise (Mismatch(rule, "response", string_of_status actual, bindings))
       | None -> ()
     end;
-    Cohttp_lwt_body.to_string body >|=
-      interpret_matcher rule result_body bindings
+    let%lwt body_text = Cohttp_lwt_body.to_string body in
+      try
+        let sub = Pcre.exec ~rex:result_body_pattern body_text in
+        let new_bindings =
+          List.map (fun (idx, name) -> (name, Pcre.get_substring sub idx)) result_binding
+        in
+          Format.printf "Updating bindings with @[<hov 2>%a@]@."
+            (Fmt.list (Fmt.pair ~sep:(Fmt.const Fmt.string "=") Fmt.string Fmt.string)) new_bindings;
+          Lwt.return
+             (List.fold_left
+                (fun bindings (name, value) -> StringMap.add name value bindings)
+                bindings new_bindings)
+      with Not_found ->
+        raise (Mismatch(rule, "body", body_text, bindings))
 
 let interpret_match_rules =
   Lwt_list.fold_right_s interpret_match_rule
 
-let pp_matcher pp = function
-  | MatchPCRE (_, re, []) ->
-      Format.fprintf pp "PCRE %s" re
-  | MatchPCRE (_, re, bindings) ->
-      Format.fprintf pp "PCRE %s and binds [@[<hov 2>%a@]]" re
-        (Fmt.list (Fmt.pair ~sep:(Fmt.const Fmt.string "=") Fmt.int Fmt.string))
-        bindings
-  | MatchJSON expected ->
-      Format.fprintf pp "JSON equivalent to %s" expected
-  | MatchCode _ ->
-      Format.fprintf pp "some function"
-  | MatchTrivial ->
-      Format.fprintf pp "everything"
-
 let pp_matchrule bindings pp
-      { request_type; uri; request_body; result_status; result_body } =
-  Format.fprintf pp "@[<hov 2>%s %s@ with@ %a@, expecting %a status@, body matches@ %a@]"
+      { request_type; uri; request_body; result_status; result_body_pattern_string;
+        result_binding } =
+  Format.fprintf pp "@[<hov 2>%s %s@ with@ %a@, expecting %a status@, body matching@ ``%s''@ and binding@ [%a]@]"
     (Cohttp.Code.string_of_method request_type)
     (Uri.to_string (uri bindings))
     (Fmt.option Fmt.string) (BatOption.map (fun f -> f bindings) request_body)
     (Fmt.option ~none:(Fmt.const Fmt.string "any")
        (fun pp rs -> Fmt.string pp (Cohttp.Code.string_of_status rs))) result_status
-    pp_matcher result_body
+    result_body_pattern_string
+    (Fmt.list (Fmt.pair Fmt.int Fmt.string)) result_binding
 
 let num_failed = ref 0
 
 let run_script file =
   try 
-    let (init, script) = parse_script file in
-    ignore (Lwt_main.run (interpret_match_rules script init))
+    ignore (Lwt_main.run (interpret_match_rules (parse_script file) StringMap.empty))
   with Mismatch (rule, what, value, bindings) ->
     incr num_failed;
     Format.eprintf

@@ -1,0 +1,4 @@
+GET "http://www.google.com/";
+GET "http://www.google.de/?q=bla" {
+        status 200
+}

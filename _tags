@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 6cb98223c0cbd716e265043527ec04a6)
+# DO NOT EDIT (digest: 5a571eb2794006cf737c3bc0ea8f2d95)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -14,22 +14,34 @@ true: annot, bin_annot
 ".git": not_hygienic
 "_darcs": -traverse
 "_darcs": not_hygienic
+# Library webexpect
+"webexpect.cmxs": use_webexpect
 # Executable webexpect
 <webExpect.{native,byte}>: pkg_batteries
 <webExpect.{native,byte}>: pkg_cohttp
 <webExpect.{native,byte}>: pkg_cohttp.lwt
+<webExpect.{native,byte}>: pkg_dynlink
 <webExpect.{native,byte}>: pkg_fmt
 <webExpect.{native,byte}>: pkg_lwt
 <webExpect.{native,byte}>: pkg_lwt.ppx
 <webExpect.{native,byte}>: pkg_lwt.unix
 <webExpect.{native,byte}>: pkg_pcre
+<webExpect.{native,byte}>: pkg_yojson
 <*.ml{,i,y}>: pkg_batteries
+<*.ml{,i,y}>: pkg_dynlink
+<*.ml{,i,y}>: pkg_fmt
+<*.ml{,i,y}>: pkg_pcre
+<*.ml{,i,y}>: pkg_yojson
+# Executable postFile
+<postFile.{native,byte}>: pkg_cohttp
+<postFile.{native,byte}>: pkg_cohttp.lwt
+<postFile.{native,byte}>: pkg_lwt
+<postFile.{native,byte}>: pkg_lwt.ppx
+<postFile.{native,byte}>: pkg_lwt.unix
 <*.ml{,i,y}>: pkg_cohttp
 <*.ml{,i,y}>: pkg_cohttp.lwt
-<*.ml{,i,y}>: pkg_fmt
 <*.ml{,i,y}>: pkg_lwt
 <*.ml{,i,y}>: pkg_lwt.ppx
 <*.ml{,i,y}>: pkg_lwt.unix
-<*.ml{,i,y}>: pkg_pcre
 # OASIS_STOP
 true: use_menhir

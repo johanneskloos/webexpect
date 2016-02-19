@@ -1,0 +1,213 @@
+prog: PUT STATUS 
+##
+## Ends in an error in state: 11.
+##
+## rule -> httpmethod . STRING body SEMICOLON [ PUT POST OPTIONS HEAD GET EOF DELETE ]
+## rule -> httpmethod . STRING body LBRACE result_matches RBRACE [ PUT POST OPTIONS HEAD GET EOF DELETE ]
+##
+## The known suffix of the stack is as follows:
+## httpmethod 
+##
+
+Expecting an URL after the HTTP method.
+
+prog: PUT STRING LBRACE MATCH PATTERN SEMICOLON SET STATUS 
+##
+## Ends in an error in state: 23.
+##
+## set_expr -> SET . STRING EQUALS NUMBER [ SEMICOLON RBRACE ]
+##
+## The known suffix of the stack is as follows:
+## SET 
+##
+
+Expecting a valid variable name on the LHS of set.
+
+prog: PUT STRING LBRACE MATCH PATTERN SEMICOLON SET STRING EQUALS NUMBER SEMICOLON STRING 
+##
+## Ends in an error in state: 28.
+##
+## separated_nonempty_list(SEMICOLON,set_expr) -> set_expr SEMICOLON . separated_nonempty_list(SEMICOLON,set_expr) [ RBRACE ]
+##
+## The known suffix of the stack is as follows:
+## set_expr SEMICOLON 
+##
+
+Expecting a valid set expression, which should start with "set".
+
+prog: PUT STRING LBRACE MATCH PATTERN SEMICOLON SET STRING EQUALS NUMBER STRING 
+##
+## Ends in an error in state: 27.
+##
+## separated_nonempty_list(SEMICOLON,set_expr) -> set_expr . [ RBRACE ]
+## separated_nonempty_list(SEMICOLON,set_expr) -> set_expr . SEMICOLON separated_nonempty_list(SEMICOLON,set_expr) [ RBRACE ]
+##
+## The known suffix of the stack is as follows:
+## set_expr 
+##
+
+Expecting a semicolon or closing brace at the end of a set expression.
+
+prog: PUT STRING LBRACE MATCH PATTERN SEMICOLON SET STRING EQUALS STRING 
+##
+## Ends in an error in state: 25.
+##
+## set_expr -> SET STRING EQUALS . NUMBER [ SEMICOLON RBRACE ]
+##
+## The known suffix of the stack is as follows:
+## SET STRING EQUALS 
+##
+
+Expecting a number, referencing a capturing pattern, at the RHS of a set expression.
+
+prog: PUT STRING LBRACE MATCH PATTERN SEMICOLON SET STRING STRING 
+##
+## Ends in an error in state: 24.
+##
+## set_expr -> SET STRING . EQUALS NUMBER [ SEMICOLON RBRACE ]
+##
+## The known suffix of the stack is as follows:
+## SET STRING 
+##
+
+Expecting an '=' sign between variable name and pattern number.
+
+prog: PUT STRING LBRACE MATCH PATTERN SEMICOLON STRING 
+##
+## Ends in an error in state: 22.
+##
+## body_match -> MATCH PATTERN SEMICOLON . loption(separated_nonempty_list(SEMICOLON,set_expr)) [ RBRACE ]
+##
+## The known suffix of the stack is as follows:
+## MATCH PATTERN SEMICOLON 
+##
+
+Expect a set expression or a closing brace after a match pattern.
+
+prog: PUT STRING LBRACE MATCH PATTERN STRING 
+##
+## Ends in an error in state: 21.
+##
+## body_match -> MATCH PATTERN . [ RBRACE ]
+## body_match -> MATCH PATTERN . SEMICOLON loption(separated_nonempty_list(SEMICOLON,set_expr)) [ RBRACE ]
+##
+## The known suffix of the stack is as follows:
+## MATCH PATTERN 
+##
+
+Expect a semicolon or a closing brace after a match pattern.
+
+prog: PUT STRING LBRACE MATCH STRING 
+##
+## Ends in an error in state: 20.
+##
+## body_match -> MATCH . PATTERN [ RBRACE ]
+## body_match -> MATCH . PATTERN SEMICOLON loption(separated_nonempty_list(SEMICOLON,set_expr)) [ RBRACE ]
+##
+## The known suffix of the stack is as follows:
+## MATCH 
+##
+
+Expect a regular expression pattern after match.
+
+prog: PUT STRING LBRACE STATUS NUMBER SEMICOLON STRING 
+##
+## Ends in an error in state: 19.
+##
+## result_matches -> STATUS NUMBER SEMICOLON . body_match [ RBRACE ]
+##
+## The known suffix of the stack is as follows:
+## STATUS NUMBER SEMICOLON 
+##
+
+Expect a body pattern match or a closing brace after a status match.
+
+prog: PUT STRING LBRACE STATUS NUMBER STRING 
+##
+## Ends in an error in state: 18.
+##
+## result_matches -> STATUS NUMBER . [ RBRACE ]
+## result_matches -> STATUS NUMBER . SEMICOLON body_match [ RBRACE ]
+##
+## The known suffix of the stack is as follows:
+## STATUS NUMBER 
+##
+
+Expect a closing brace or a body pattern match after a status match.
+
+prog: PUT STRING LBRACE STATUS STRING 
+##
+## Ends in an error in state: 17.
+##
+## result_matches -> STATUS . NUMBER [ RBRACE ]
+## result_matches -> STATUS . NUMBER SEMICOLON body_match [ RBRACE ]
+##
+## The known suffix of the stack is as follows:
+## STATUS 
+##
+
+Expect a return code, given as a number, after 'status'.
+
+prog: PUT STRING LBRACE STRING 
+##
+## Ends in an error in state: 16.
+##
+## rule -> httpmethod STRING body LBRACE . result_matches RBRACE [ PUT POST OPTIONS HEAD GET EOF DELETE ]
+##
+## The known suffix of the stack is as follows:
+## httpmethod STRING body LBRACE 
+##
+
+Expect a status match or a body pattern match inside a matching block.
+
+prog: PUT STRING SEMICOLON STRING 
+##
+## Ends in an error in state: 8.
+##
+## prog -> rev_rules . EOF [ # ]
+## rev_rules -> rev_rules . rule [ PUT POST OPTIONS HEAD GET EOF DELETE ]
+##
+## The known suffix of the stack is as follows:
+## rev_rules 
+##
+
+Expect a HTTP method at the start of a rule.
+
+prog: PUT STRING STATUS 
+##
+## Ends in an error in state: 12.
+##
+## rule -> httpmethod STRING . body SEMICOLON [ PUT POST OPTIONS HEAD GET EOF DELETE ]
+## rule -> httpmethod STRING . body LBRACE result_matches RBRACE [ PUT POST OPTIONS HEAD GET EOF DELETE ]
+##
+## The known suffix of the stack is as follows:
+## httpmethod STRING 
+##
+
+Expect a message body or a matching block.
+
+prog: PUT STRING STRING HEAD 
+##
+## Ends in an error in state: 14.
+##
+## rule -> httpmethod STRING body . SEMICOLON [ PUT POST OPTIONS HEAD GET EOF DELETE ]
+## rule -> httpmethod STRING body . LBRACE result_matches RBRACE [ PUT POST OPTIONS HEAD GET EOF DELETE ]
+##
+## The known suffix of the stack is as follows:
+## httpmethod STRING body 
+##
+
+Expect a semicolon or a matching block after a HTTP request.
+
+prog: STRING 
+##
+## Ends in an error in state: 0.
+##
+## prog' -> . prog [ # ]
+##
+## The known suffix of the stack is as follows:
+## 
+##
+
+Expect a HTTP method at the start of a rule.
+

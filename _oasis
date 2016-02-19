@@ -6,9 +6,23 @@ Authors:     Johannes Kloos <jkloos@mpi-sws.org>
 License:     MIT
 Plugins:     META (0.4)
 
+Library webexpect
+  Path:       .
+  XMETAEnable: true
+  BuildTools: ocamlbuild
+  Modules:    ExpectTypes
+
 Executable webexpect
   Path:       .
   BuildTools: ocamlbuild, menhir
   MainIs:     webExpect.ml
-  BuildDepends: cohttp, lwt, cohttp.lwt, lwt.unix, lwt.ppx, pcre, fmt, batteries
+  BuildDepends: cohttp, lwt, cohttp.lwt, lwt.unix, lwt.ppx, pcre, fmt, batteries, dynlink, yojson
   CompiledObject: best
+
+Executable postFile
+  Path:       .
+  BuildTools: ocamlbuild
+  MainIs:     postFile.ml
+  BuildDepends: cohttp, lwt, cohttp.lwt, lwt.unix, lwt.ppx
+  CompiledObject: best
+ 

@@ -14,9 +14,14 @@ and pattern buf = parse
     | _ { Buffer.add_string buf (Lexing.lexeme lexbuf); pattern buf lexbuf }
 
 and string buf = parse
-    | "\\" { Buffer.add_string buf (char lexbuf); pattern buf lexbuf }
+    | "\\" { Buffer.add_string buf (char lexbuf); string buf lexbuf }
     | "\"" { Buffer.contents buf }
-    | _ { Buffer.add_string buf (Lexing.lexeme lexbuf); pattern buf lexbuf }
+    | _ { Buffer.add_string buf (Lexing.lexeme lexbuf); string buf lexbuf }
+
+and string' buf = parse
+    | "\\" { Buffer.add_string buf (char lexbuf); string' buf lexbuf }
+    | "'" { Buffer.contents buf }
+    | _ { Buffer.add_string buf (Lexing.lexeme lexbuf); string' buf lexbuf }
 
 and main = parse
     | white { main lexbuf }
@@ -26,15 +31,21 @@ and main = parse
     | "PUT" { PUT }
     | "DELETE" { DELETE }
     | "OPTIONS" { OPTIONS }
-    | "STATUS" { STATUS }
+    | "status" { STATUS }
     | "{" { LBRACE }
     | "}" { RBRACE }
     | ";" { SEMICOLON }
-    | "SET" { SET }
-    | "MATCH" { MATCH }
+    | "set" { SET }
+    | "match" { MATCH }
     | "=" { EQUALS }
+    | "load" { LOAD }
+    | "with" { WITH }
+    | "," { COMMA }
+    | "json" { JSON }
     | int { NUMBER (int_of_string (Lexing.lexeme lexbuf)) }
+    | "\"" { STRING (string (Buffer.create 23) lexbuf) }
+    | "'" { STRING (string' (Buffer.create 23) lexbuf) }
     | "/" { PATTERN (pattern (Buffer.create 23) lexbuf) }
     | identifier { STRING (Lexing.lexeme lexbuf) }
-    | "\"" { STRING (string (Buffer.create 23) lexbuf) }
-
+    | _ { raise (ExpectTypes.SyntaxError ("Unknown character: " ^ Lexing.lexeme lexbuf)) }
+    | eof { EOF }
